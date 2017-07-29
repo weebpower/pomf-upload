@@ -1,3 +1,8 @@
+# Dependencies
+
+`curl` and `jq`.
+These are really small and useful so they shouldn't be a problem even if you're trying to remain suckless.
+
 # Usage
 `$ pomf FILE`
 
