@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# pomf.se uploader
+# requires: curl, jq
+# Works in dash!
+
+upload_url='https://pomf.space/upload.php'
+return_url='https://a.pomf.space'
+
+# Alternatives:
+
+#upload_url='https://pomf.cat/upload.php'
+#return_url='https://a.pomf.cat'
+
+#upload_url='https://mixtape.moe/upload.php'
+#return_url='https://my.mixtape.moe'
+
+usage()
+{
+	echo "USAGE: $0 FILE"
+        exit 1
+}
+
+[ -n "$1" ] || { echo 'No filename given!'; usage; } 
+[ -f "$1" ] || { echo 'File does not exist!'; usage; }  
+
+success=false
+until [ $success = true ]
+do 
+	json_out="$(curl --silent --fail --form files[]=@$1 $upload_url)"
+	remote_filename="$(echo $json_out | jq -r '.files[0].url')"
+	file_url="$return_url/$(basename $remote_filename)"
+	success=$(echo $json_out | jq -r '.success')
+done
+
+echo "$file_url" 
+echo "$file_url" | xclip -in -sel clip 
+beep
