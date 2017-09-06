@@ -16,22 +16,24 @@ return_url='https://a.pomf.space'
 
 usage()
 {
-	echo "USAGE: $0 FILE"
+	echo "USAGE: $0 FILES"
         exit 1
 }
 
-[ -n "$1" ] || { echo 'No filename given!'; usage; } 
+[ -n "$1" ] || { echo 'No filename given!';   usage; } 
 [ -f "$1" ] || { echo 'File does not exist!'; usage; }  
+ 
+json_out="$(curl --form files[]=@"$@" $upload_url)"
+remote_filename="$(echo $json_out | jq -r '.files[0].url')"
+success=$(echo $json_out | jq -r '.success')
 
-success=false
-until [ $success = true ]
-do 
-	json_out="$(curl --silent --fail --form files[]=@$1 $upload_url)"
-	remote_filename="$(echo $json_out | jq -r '.files[0].url')"
+if [ $success = true ]
+then
 	file_url="$return_url/$(basename $remote_filename)"
-	success=$(echo $json_out | jq -r '.success')
-done
-
-echo "$file_url" 
-echo "$file_url" | xclip -in -sel clip 
-beep
+	echo "$file_url" 
+	echo "$file_url" | xclip -in -sel clip
+	beep
+else
+	echo 'File upload unsuccessful!'
+	exit 1
+fi
